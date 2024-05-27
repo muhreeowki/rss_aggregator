@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/muhreeowki/rss_aggregator/internal/auth"
 	"github.com/muhreeowki/rss_aggregator/internal/database"
 )
 
@@ -19,7 +20,7 @@ func (apiCfg *apiConfig) handlerCreateUser(writer http.ResponseWriter, r *http.R
 	p := params{}
 	err := decoder.Decode(&p)
 	if err != nil {
-		respondWithError(writer, 400, fmt.Sprintf("Error parsing JSON: %s", err))
+		respondWithError(writer, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
 	}
 
@@ -30,7 +31,22 @@ func (apiCfg *apiConfig) handlerCreateUser(writer http.ResponseWriter, r *http.R
 		Name:      p.Name,
 	})
 	if err != nil {
-		respondWithError(writer, 400, fmt.Sprintf("Couldnt create user: %s", err))
+		respondWithError(writer, 400, fmt.Sprintf("Couldnt create user: %v", err))
+		return
+	}
+
+	respondWithJSON(writer, 201, databaseUserToUser(user))
+}
+
+func (apiCfg *apiConfig) handlerGetUser(writer http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(writer, 403, fmt.Sprintf("Auth error: %v", err))
+		return
+	}
+	user, err := apiCfg.DB.GetUserByAPIKey(r.Context(), apiKey)
+	if err != nil {
+		respondWithError(writer, 400, fmt.Sprintf("Couldnt find user: %v", err))
 		return
 	}
 
