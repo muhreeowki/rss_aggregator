@@ -40,6 +40,12 @@ func (apiCfg *apiConfig) handlerCreateFeed(writer http.ResponseWriter, r *http.R
 	respondWithJSON(writer, 201, databaseFeedToFeed(feed))
 }
 
-// func (apiCfg *apiConfig) handlerGetFeed(writer http.ResponseWriter, r *http.Request, user database.User) {
-// 	respondWithJSON(writer, 200, databaseUserToUser(user))
-// }
+func (apiCfg *apiConfig) handlerGetFeeds(writer http.ResponseWriter, r *http.Request) {
+	feeds, err := apiCfg.DB.GetFeeds(r.Context())
+	if err != nil {
+		respondWithError(writer, 400, fmt.Sprintf("Couldnt get feeds: %v", err))
+		return
+	}
+
+	respondWithJSON(writer, 200, databaseFeedsToFeeds(feeds))
+}
