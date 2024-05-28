@@ -43,7 +43,7 @@ func main() {
 		DB: queries,
 	}
 
-	// Routers
+	// Create a new router
 	router := chi.NewRouter()
 	v1Router := chi.NewRouter()
 
@@ -57,22 +57,25 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	// Routes and Handlers
+	// Routes
 	v1Router.Get("/ready", handlerReadiness)
 	v1Router.Get("/error", handlerError)
 	v1Router.Post("/users", apiCfg.handlerCreateUser)
 	v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerGetUser))
 	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
 	v1Router.Get("/feeds", apiCfg.handlerGetFeeds)
+	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
+	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerGetFeedFollows))
+	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
 	router.Mount("/v1", v1Router)
 
-	// Setup server http instance
+	// Create the server
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + port,
 	}
 
-	// Start server
+	// Start the server
 	fmt.Printf("Server listening on PORT %v...", port)
 	err = srv.ListenAndServe()
 	if err != nil {
