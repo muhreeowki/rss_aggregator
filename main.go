@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -43,6 +44,8 @@ func main() {
 		DB: queries,
 	}
 
+	go startScraping(apiCfg.DB, 10, time.Minute)
+
 	// Create a new router
 	router := chi.NewRouter()
 	v1Router := chi.NewRouter()
@@ -67,6 +70,7 @@ func main() {
 	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
 	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerGetFeedFollows))
 	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
+	v1Router.Get("/posts", apiCfg.middlewareAuth(apiCfg.handlerGetPostsForUser))
 	router.Mount("/v1", v1Router)
 
 	// Create the server
@@ -77,6 +81,7 @@ func main() {
 
 	// Start the server
 	fmt.Printf("Server listening on PORT %v...", port)
+
 	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
